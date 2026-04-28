@@ -8,44 +8,26 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    
     steps:
       - uses: actions/checkout@v4
-      
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
-      
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.22.0'
-          channel: 'stable'
-      
-      - name: Create full Flutter project
-        run: |
-          # حفظ محتويات lib الحالية
-          cp -r mobile_app/lib lib_backup
-          # حذف مجلد mobile_app
-          rm -rf mobile_app
-          # إنشاء مشروع Flutter جديد
-          flutter create mobile_app --platforms=android
-          # استعادة مجلد lib
-          cp -r lib_backup mobile_app/lib
-          rm -rf lib_backup
-      
-      - name: Get dependencies
+      - name: Create Flutter project
         run: |
           cd mobile_app
+          flutter create . --platforms=android --force
           flutter pub get
-      
       - name: Build APK
         run: |
           cd mobile_app
           flutter build apk --release
-      
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
