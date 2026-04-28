@@ -1,6 +1,7 @@
 name: sehtak_platform
 description: Sehtak Health Platform
 version: 1.0.0+1
+publish_to: none
 
 environment:
   sdk: '>=3.4.0 <4.0.0'
@@ -12,6 +13,7 @@ dependencies:
   dio: ^5.4.0
   shared_preferences: ^2.2.2
   google_fonts: ^6.2.1
+  go_router: ^13.0.0
 
 dev_dependencies:
   flutter_test:

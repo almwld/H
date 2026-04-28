@@ -1,0 +1,13 @@
+.DS_Store
+.dart_tool/
+.packages
+pubspec.lock
+build/
+*.iml
+.idea/
+.vscode/
+.DS_Store
+*.swp
+*.lock
+node_modules/
+.env
