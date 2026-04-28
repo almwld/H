@@ -26,13 +26,228 @@ jobs:
       
       - name: Create Flutter project
         run: |
+          # إنشاء مجلد المشروع
+          mkdir -p mobile_app
           cd mobile_app
-          # حذف مجلد android إذا كان موجوداً
-          rm -rf android
-          # إنشاء مشروع Flutter جديد مع مجلد android
-          flutter create . --platforms=android
-          # إضافة الحزم المطلوبة
-          flutter pub add google_fonts dio shared_preferences get_it flutter_svg lottie
+          
+          # إنشاء pubspec.yaml
+          cat > pubspec.yaml << 'YAML'
+          name: sehtak_platform
+          description: Sehtak Health Platform
+          version: 1.0.0+1
+          publish_to: none
+          
+          environment:
+            sdk: '>=3.4.0 <4.0.0'
+          
+          dependencies:
+            flutter:
+              sdk: flutter
+            google_fonts: ^6.2.1
+            dio: ^5.4.0
+            shared_preferences: ^2.2.2
+            get_it: ^7.6.7
+          
+          dev_dependencies:
+            flutter_test:
+              sdk: flutter
+            flutter_lints: ^3.0.1
+          
+          flutter:
+            uses-material-design: true
+          YAML
+          
+          # إنشاء مشروع Flutter كامل
+          flutter create . --platforms=android --force
+          
+          # إضافة الحزم
+          flutter pub add google_fonts dio shared_preferences get_it
+      
+      - name: Create app source code
+        run: |
+          cd mobile_app
+          
+          # إنشاء مجلدات lib
+          mkdir -p lib/presentation/screens lib/presentation/screens/auth lib/presentation/screens/home
+          mkdir -p lib/services/api lib/widgets
+          
+          # إنشاء main.dart
+          cat > lib/main.dart << 'DART'
+          import 'package:flutter/material.dart';
+          import 'package:google_fonts/google_fonts.dart';
+          import 'package:shared_preferences/shared_preferences.dart';
+          import 'package:get_it/get_it.dart';
+          
+          final sl = GetIt.instance;
+          
+          void main() async {
+            WidgetsFlutterBinding.ensureInitialized();
+            final prefs = await SharedPreferences.getInstance();
+            sl.registerLazySingleton(() => prefs);
+            runApp(const SehtakApp());
+          }
+          
+          class SehtakApp extends StatelessWidget {
+            const SehtakApp({super.key});
+          
+            @override
+            Widget build(BuildContext context) {
+              return MaterialApp(
+                title: 'صحتك',
+                debugShowCheckedModeBanner: false,
+                theme: ThemeData(
+                  primarySwatch: Colors.teal,
+                  fontFamily: GoogleFonts.cairo().fontFamily,
+                  useMaterial3: true,
+                ),
+                home: const HomeScreen(),
+              );
+            }
+          }
+          
+          class HomeScreen extends StatelessWidget {
+            const HomeScreen({super.key});
+          
+            @override
+            Widget build(BuildContext context) {
+              return Scaffold(
+                appBar: AppBar(
+                  title: const Text('صحتك'),
+                  centerTitle: true,
+                  backgroundColor: Colors.teal,
+                  foregroundColor: Colors.white,
+                ),
+                body: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: Colors.teal.shade50,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.health_and_safety,
+                            size: 80,
+                            color: Colors.teal,
+                          ),
+                        ),
+                        const SizedBox(height: 30),
+                        Text(
+                          'مرحباً بك في صحتك',
+                          style: GoogleFonts.cairo(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.teal,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          'الرعاية الصحية الرقمية من منزلك',
+                          style: GoogleFonts.cairo(
+                            fontSize: 16,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                        const SizedBox(height: 40),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('جاري البحث عن طبيب...'),
+                                  backgroundColor: Colors.teal,
+                                ),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.teal,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: const Text(
+                              'تحدث مع طبيب الآن',
+                              style: TextStyle(fontSize: 18, color: Colors.white),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }
+          }
+          DART
+          
+          # إنشاء Storage Service
+          cat > lib/services/storage_service.dart << 'DART'
+          import 'package:shared_preferences/shared_preferences.dart';
+          import 'package:get_it/get_it.dart';
+          
+          class StorageService {
+            final SharedPreferences _prefs = GetIt.instance<SharedPreferences>();
+          
+            static const String _tokenKey = 'auth_token';
+          
+            Future<void> saveToken(String token) async {
+              await _prefs.setString(_tokenKey, token);
+            }
+          
+            String? getToken() {
+              return _prefs.getString(_tokenKey);
+            }
+          
+            Future<void> clear() async {
+              await _prefs.remove(_tokenKey);
+            }
+          
+            bool isLoggedIn() {
+              return getToken() != null;
+            }
+          }
+          DART
+          
+          # إنشاء API Client
+          cat > lib/services/api_client.dart << 'DART'
+          import 'package:dio/dio.dart';
+          import 'storage_service.dart';
+          
+          class ApiClient {
+            late Dio _dio;
+            final StorageService _storage = StorageService();
+            static const String baseUrl = 'https://api.sehtak.com/v1';
+          
+            ApiClient() {
+              _dio = Dio(BaseOptions(
+                baseUrl: baseUrl,
+                connectTimeout: const Duration(seconds: 30),
+                headers: {'Content-Type': 'application/json'},
+              ));
+          
+              _dio.interceptors.add(InterceptorsWrapper(
+                onRequest: (options, handler) async {
+                  final token = _storage.getToken();
+                  if (token != null) {
+                    options.headers['Authorization'] = 'Bearer $token';
+                  }
+                  return handler.next(options);
+                },
+              ));
+            }
+          
+            Future<Map<String, dynamic>> post(String path, {dynamic data}) async {
+              final response = await _dio.post(path, data: data);
+              return response.data;
+            }
+          }
+          DART
       
       - name: Build APK
         run: |
