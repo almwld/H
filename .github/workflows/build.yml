@@ -22,23 +22,29 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.22.0'
+          channel: 'stable'
       
-      - name: Create Flutter project with Android
+      - name: Create full Flutter project
+        run: |
+          # حفظ محتويات lib الحالية
+          cp -r mobile_app/lib lib_backup
+          # حذف مجلد mobile_app
+          rm -rf mobile_app
+          # إنشاء مشروع Flutter جديد
+          flutter create mobile_app --platforms=android
+          # استعادة مجلد lib
+          cp -r lib_backup mobile_app/lib
+          rm -rf lib_backup
+      
+      - name: Get dependencies
         run: |
           cd mobile_app
-          flutter create . --platforms=android --force
-          cat android/app/build.gradle | head -20
-      
-      - name: Fix gradle wrapper
-        run: |
-          cd mobile_app/android
-          chmod +x gradlew
-          ./gradlew --version
+          flutter pub get
       
       - name: Build APK
         run: |
           cd mobile_app
-          flutter build apk --release --verbose
+          flutter build apk --release
       
       - name: Upload APK
         uses: actions/upload-artifact@v4
