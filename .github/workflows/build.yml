@@ -8,26 +8,37 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    
     steps:
       - uses: actions/checkout@v4
+      
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
+      
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.22.0'
+          channel: 'stable'
+      
       - name: Create Flutter project
         run: |
           cd mobile_app
-          flutter create . --platforms=android --force
-          flutter pub get
+          # حذف مجلد android إذا كان موجوداً
+          rm -rf android
+          # إنشاء مشروع Flutter جديد مع مجلد android
+          flutter create . --platforms=android
+          # إضافة الحزم المطلوبة
+          flutter pub add google_fonts dio shared_preferences get_it flutter_svg lottie
+      
       - name: Build APK
         run: |
           cd mobile_app
           flutter build apk --release
+      
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
