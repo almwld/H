@@ -3,8 +3,14 @@ import 'package:get_it/get_it.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../data/models/doctor_model.dart';
+import '../../bloc/consultation/consultation_bloc.dart';
 import '../../widgets/doctor_card.dart';
 import '../consultation/symptoms_selector_screen.dart';
+import '../consultation/consultation_history_screen.dart';
+import '../pharmacy/order_history_screen.dart';
+import '../profile/profile_screen.dart';
+import '../profile/subscription_screen.dart';
+import '../notifications/notifications_screen.dart';
 import '../doctor/doctor_profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -16,10 +22,12 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   List<DoctorModel> _recentDoctors = [];
+  late ConsultationBloc _consultationBloc;
 
   @override
   void initState() {
     super.initState();
+    _consultationBloc = GetIt.instance<ConsultationBloc>();
     _loadDummyDoctors();
   }
 
@@ -170,28 +178,58 @@ class _HomeScreenState extends State<HomeScreen> {
                 icon: Icons.local_pharmacy,
                 label: 'صيدليات',
                 color: Colors.blue,
-                onTap: () {},
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const OrderHistoryScreen(),
+                    ),
+                  );
+                },
               ),
               _buildQuickAction(
-                icon: Icons.analytics,
-                label: 'تحاليل',
+                icon: Icons.history,
+                label: 'تاريخي',
                 color: Colors.orange,
-                onTap: () {},
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const ConsultationHistoryScreen(),
+                    ),
+                  );
+                },
               ),
               _buildQuickAction(
-                icon: Icons.psychology,
-                label: 'الذكاء الاصطناعي',
+                icon: Icons.subscriptions,
+                label: 'الباقات',
                 color: Colors.purple,
-                onTap: () {},
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const SubscriptionScreen(),
+                    ),
+                  );
+                },
               ),
             ],
           ),
           const SizedBox(height: 24),
 
           // Recent Doctors
-          const Text(
-            'أطباؤك المفضلون',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'أطباؤك المفضلون',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              TextButton(
+                onPressed: () {},
+                child: const Text('عرض الكل'),
+              ),
+            ],
           ),
           const SizedBox(height: 12),
           SizedBox(

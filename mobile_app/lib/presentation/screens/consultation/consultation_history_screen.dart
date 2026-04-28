@@ -5,6 +5,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../bloc/consultation/consultation_bloc.dart';
 import '../../widgets/consultation_card.dart';
 import 'consultation_details_screen.dart';
+import 'prescription_screen.dart';
 
 class ConsultationHistoryScreen extends StatefulWidget {
   const ConsultationHistoryScreen({super.key});
@@ -26,6 +27,15 @@ class _ConsultationHistoryScreenState extends State<ConsultationHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('تاريخ الاستشارات'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.filter_list),
+            onPressed: () => _showFilterDialog(),
+          ),
+        ],
+      ),
       body: BlocBuilder<ConsultationBloc, ConsultationState>(
         bloc: _consultationBloc,
         builder: (context, state) {
@@ -36,24 +46,30 @@ class _ConsultationHistoryScreenState extends State<ConsultationHistoryScreen> {
             if (state.consultations.isEmpty) {
               return _buildEmptyState();
             }
-            return ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: state.consultations.length,
-              itemBuilder: (context, index) {
-                return ConsultationCard(
-                  consultation: state.consultations[index],
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => ConsultationDetailsScreen(
-                          consultationId: state.consultations[index].id,
-                        ),
-                      ),
-                    );
-                  },
-                );
+            return RefreshIndicator(
+              onRefresh: () async {
+                _consultationBloc.add(LoadConsultationsEvent());
               },
+              child: ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: state.consultations.length,
+                itemBuilder: (context, index) {
+                  final consultation = state.consultations[index];
+                  return ConsultationCard(
+                    consultation: consultation,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ConsultationDetailsScreen(
+                            consultationId: consultation.id,
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
             );
           }
           if (state is ConsultationFailure) {
@@ -61,6 +77,48 @@ class _ConsultationHistoryScreenState extends State<ConsultationHistoryScreen> {
           }
           return const SizedBox.shrink();
         },
+      ),
+    );
+  }
+
+  void _showFilterDialog() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'تصفية الاستشارات',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.all_inclusive),
+              title: const Text('الكل'),
+              onTap: () => Navigator.pop(context),
+            ),
+            ListTile(
+              leading: const Icon(Icons.check_circle, color: Colors.green),
+              title: const Text('مكتملة'),
+              onTap: () => Navigator.pop(context),
+            ),
+            ListTile(
+              leading: const Icon(Icons.pending, color: Colors.orange),
+              title: const Text('قيد الانتظار'),
+              onTap: () => Navigator.pop(context),
+            ),
+            ListTile(
+              leading: const Icon(Icons.cancel, color: Colors.red),
+              title: const Text('ملغية'),
+              onTap: () => Navigator.pop(context),
+            ),
+          ],
+        ),
       ),
     );
   }

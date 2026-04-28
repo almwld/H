@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/utils/helpers.dart';
 import '../../widgets/custom_button.dart';
 
 class MedicalHistoryScreen extends StatefulWidget {
@@ -10,9 +11,10 @@ class MedicalHistoryScreen extends StatefulWidget {
 }
 
 class _MedicalHistoryScreenState extends State<MedicalHistoryScreen> {
+  String? _selectedBloodType;
   final List<String> _chronicDiseases = [];
   final List<String> _allergies = [];
-  final List<Map<String, String>> _medications = [];
+  final List<Map<String, String>> _currentMedications = [];
 
   final List<String> _availableDiseases = [
     'السكري',
@@ -21,6 +23,9 @@ class _MedicalHistoryScreenState extends State<MedicalHistoryScreen> {
     'الربو',
     'الغدة الدرقية',
     'الأنيميا',
+    'التحصين ضد التيتانوس',
+    'الصرع',
+    'الاكتئاب',
   ];
 
   final List<String> _availableAllergies = [
@@ -30,7 +35,59 @@ class _MedicalHistoryScreenState extends State<MedicalHistoryScreen> {
     'الحليب',
     'الغلوتين',
     'اللاتكس',
+    'الصويا',
+    'السمك',
+    'المحار',
   ];
+
+  final List<String> _bloodTypes = ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'];
+
+  void _addMedication() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('إضافة دواء'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const TextField(
+              decoration: InputDecoration(
+                labelText: 'اسم الدواء',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 12),
+            const TextField(
+              decoration: InputDecoration(
+                labelText: 'الجرعة',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 12),
+            const TextField(
+              decoration: InputDecoration(
+                labelText: 'المدة',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('إلغاء'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Helpers.showSnackBar(context, 'تم إضافة الدواء');
+            },
+            child: const Text('إضافة'),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +98,7 @@ class _MedicalHistoryScreenState extends State<MedicalHistoryScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Blood Type
+            // Blood Type Selection
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16),
@@ -54,17 +111,16 @@ class _MedicalHistoryScreenState extends State<MedicalHistoryScreen> {
                     ),
                     const SizedBox(height: 8),
                     DropdownButtonFormField<String>(
-                      items: const [
-                        DropdownMenuItem(value: 'A+', child: Text('A+')),
-                        DropdownMenuItem(value: 'A-', child: Text('A-')),
-                        DropdownMenuItem(value: 'B+', child: Text('B+')),
-                        DropdownMenuItem(value: 'B-', child: Text('B-')),
-                        DropdownMenuItem(value: 'O+', child: Text('O+')),
-                        DropdownMenuItem(value: 'O-', child: Text('O-')),
-                        DropdownMenuItem(value: 'AB+', child: Text('AB+')),
-                        DropdownMenuItem(value: 'AB-', child: Text('AB-')),
-                      ],
-                      onChanged: (value) {},
+                      value: _selectedBloodType,
+                      hint: const Text('اختر فصيلة الدم'),
+                      items: _bloodTypes.map((type) {
+                        return DropdownMenuItem(value: type, child: Text(type));
+                      }).toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedBloodType = value;
+                        });
+                      },
                       decoration: InputDecoration(
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -91,6 +147,7 @@ class _MedicalHistoryScreenState extends State<MedicalHistoryScreen> {
                     const SizedBox(height: 8),
                     Wrap(
                       spacing: 8,
+                      runSpacing: 8,
                       children: _availableDiseases.map((disease) {
                         return FilterChip(
                           label: Text(disease),
@@ -104,6 +161,8 @@ class _MedicalHistoryScreenState extends State<MedicalHistoryScreen> {
                               }
                             });
                           },
+                          selectedColor: AppColors.primary.withOpacity(0.2),
+                          checkmarkColor: AppColors.primary,
                         );
                       }).toList(),
                     ),
@@ -127,6 +186,7 @@ class _MedicalHistoryScreenState extends State<MedicalHistoryScreen> {
                     const SizedBox(height: 8),
                     Wrap(
                       spacing: 8,
+                      runSpacing: 8,
                       children: _availableAllergies.map((allergy) {
                         return FilterChip(
                           label: Text(allergy),
@@ -140,9 +200,43 @@ class _MedicalHistoryScreenState extends State<MedicalHistoryScreen> {
                               }
                             });
                           },
+                          selectedColor: AppColors.error.withOpacity(0.2),
+                          checkmarkColor: AppColors.error,
                         );
                       }).toList(),
                     ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Current Medications
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'الأدوية الحالية',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.add_circle, color: AppColors.primary),
+                          onPressed: _addMedication,
+                        ),
+                      ],
+                    ),
+                    const Divider(),
+                    if (_currentMedications.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Text('لا توجد أدوية حالية'),
+                      ),
                   ],
                 ),
               ),
@@ -151,6 +245,7 @@ class _MedicalHistoryScreenState extends State<MedicalHistoryScreen> {
             CustomButton(
               text: 'حفظ التغييرات',
               onPressed: () {
+                Helpers.showSnackBar(context, 'تم حفظ السجل الطبي بنجاح');
                 Navigator.pop(context);
               },
             ),

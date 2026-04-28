@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/utils/helpers.dart';
 import 'prescription_screen.dart';
+import 'active_consultation_screen.dart';
 
 class ConsultationDetailsScreen extends StatefulWidget {
   final String consultationId;
@@ -76,8 +77,9 @@ class _ConsultationDetailsScreenState extends State<ConsultationDetailsScreen> {
                       style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                     ),
                     const Divider(),
-                    _buildInfoRow('التاريخ', Helpers.formatDateTime(DateTime.now())),
+                    _buildInfoRow('التاريخ', Helpers.formatDateTime(DateTime.now().subtract(const Duration(days: 5)))),
                     _buildInfoRow('المدة', '15 دقيقة'),
+                    _buildInfoRow('السعر', '99 ريال'),
                     _buildInfoRow('الحالة', 'مكتملة', color: Colors.green),
                   ],
                 ),
@@ -97,7 +99,7 @@ class _ConsultationDetailsScreenState extends State<ConsultationDetailsScreen> {
                       style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                     ),
                     const Divider(),
-                    Text(
+                    const Text(
                       'ألم حاد في البطن + غثيان + ارتفاع في درجة الحرارة',
                     ),
                   ],
@@ -127,22 +129,33 @@ class _ConsultationDetailsScreenState extends State<ConsultationDetailsScreen> {
             ),
             const SizedBox(height: 24),
 
-            // Buttons
+            // Action Buttons
             Row(
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: () {},
-                    icon: const Icon(Icons.chat),
-                    label: const Text('محادثة'),
+                    onPressed: () {
+                      Helpers.showSnackBar(context, 'جاري الاتصال بالطبيب...');
+                    },
+                    icon: const Icon(Icons.phone),
+                    label: const Text('اتصال'),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: () {},
-                    icon: const Icon(Icons.phone),
-                    label: const Text('اتصال'),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ActiveConsultationScreen(
+                            consultationId: widget.consultationId,
+                          ),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.chat),
+                    label: const Text('محادثة'),
                   ),
                 ),
               ],
@@ -152,9 +165,11 @@ class _ConsultationDetailsScreenState extends State<ConsultationDetailsScreen> {
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: () {},
-                    icon: const Icon(Icons.local_hospital),
-                    label: const Text('إعادة حجز'),
+                    onPressed: () {
+                      _showRateDialog();
+                    },
+                    icon: const Icon(Icons.star),
+                    label: const Text('تقييم'),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -173,6 +188,73 @@ class _ConsultationDetailsScreenState extends State<ConsultationDetailsScreen> {
               ],
             ),
             const SizedBox(height: 16),
+
+            // Rebook Button
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  Helpers.showSnackBar(context, 'جاري إعادة حجز استشارة جديدة...');
+                },
+                icon: const Icon(Icons.refresh),
+                label: const Text('إعادة حجز نفس الاستشارة'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showRateDialog() {
+    double rating = 5.0;
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text('تقييم الاستشارة'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(5, (index) {
+                  return IconButton(
+                    icon: Icon(
+                      index < rating ? Icons.star : Icons.star_border,
+                      color: Colors.amber,
+                      size: 32,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        rating = index + 1.0;
+                      });
+                    },
+                  );
+                }),
+              ),
+              const SizedBox(height: 16),
+              const TextField(
+                decoration: InputDecoration(
+                  hintText: 'اكتب تعليقك هنا...',
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 3,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('إلغاء'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                Helpers.showSnackBar(context, 'شكراً لتقييمك!');
+              },
+              child: const Text('إرسال'),
+            ),
           ],
         ),
       ),
