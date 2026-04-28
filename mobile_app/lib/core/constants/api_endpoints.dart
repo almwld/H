@@ -10,12 +10,13 @@ class ApiEndpoints {
   static const String forgotPassword = '/auth/forgot-password';
   static const String resetPassword = '/auth/reset-password';
   static const String logout = '/auth/logout';
+  static const String refreshToken = '/auth/refresh';
   
   // User
   static const String profile = '/user/profile';
   static const String updateProfile = '/user/profile';
   static const String medicalHistory = '/user/medical-history';
-  static const String updateMedicalHistory = '/user/medical-history';
+  static const String uploadAvatar = '/user/avatar';
   static const String deleteAccount = '/user/account';
   
   // Consultations
@@ -55,10 +56,13 @@ class ApiEndpoints {
   static const String currentSubscription = '/subscriptions/current';
   static const String upgradeSubscription = '/subscriptions/upgrade';
   static const String cancelSubscription = '/subscriptions/cancel';
+  static const String plans = '/subscriptions/plans';
   
   // Payments
   static const String payments = '/payments';
   static const String paymentMethods = '/payments/methods';
+  static const String addPaymentMethod = '/payments/methods/add';
+  static const String removePaymentMethod = '/payments/methods/remove';
   static const String verifyPayment = '/payments/verify';
   
   // AI
@@ -66,9 +70,11 @@ class ApiEndpoints {
   static const String aiSymptoms = '/ai/symptoms-checker';
   static const String aiChatbot = '/ai/chatbot';
   static const String aiFollowup = '/ai/followup';
+  static const String aiPrescription = '/ai/prescription';
   
   // Notifications
   static const String notifications = '/notifications';
   static const String markAsRead = '/notifications/read';
+  static const String markAllAsRead = '/notifications/read-all';
   static const String notificationSettings = '/notifications/settings';
 }
