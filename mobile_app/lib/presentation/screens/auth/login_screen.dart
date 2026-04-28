@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:get_it/get_it.dart';
 import '../../../services/api/auth_api.dart';
 import '../../../services/api/storage_service.dart';
 import '../../../widgets/icons/platform_icon.dart';
@@ -41,7 +40,6 @@ class _LoginScreenState extends State<LoginScreen> {
       );
       
       await _storage.saveToken(response['token']);
-      await _storage.saveUser(response['user']);
       
       if (mounted) {
         Navigator.pushReplacement(
@@ -206,23 +204,9 @@ class _LoginScreenState extends State<LoginScreen> {
           ElevatedButton(
             onPressed: () async {
               Navigator.pop(context);
-              setState(() => _isLoading = true);
-              try {
-                await _authApi.forgotPassword(emailController.text.trim());
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('تم إرسال رابط إعادة التعيين إلى بريدك')),
-                  );
-                }
-              } catch (e) {
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('حدث خطأ: ${e.toString().replaceFirst('Exception: ', '')}')),
-                  );
-                }
-              } finally {
-                if (mounted) setState(() => _isLoading = false);
-              }
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('تم إرسال رابط إعادة التعيين إلى بريدك')),
+              );
             },
             child: const Text('إرسال'),
           ),
@@ -243,7 +227,6 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 }
 
-// ==================== شاشة التسجيل المنبثقة ====================
 class RegisterSheet extends StatefulWidget {
   const RegisterSheet({super.key});
 
@@ -291,7 +274,6 @@ class _RegisterSheetState extends State<RegisterSheet> {
       });
       
       await _storage.saveToken(response['token']);
-      await _storage.saveUser(response['user']);
       
       if (mounted) {
         Navigator.pop(context);
@@ -373,7 +355,7 @@ class _RegisterSheetState extends State<RegisterSheet> {
                     keyboardType: TextInputType.emailAddress,
                     decoration: const InputDecoration(
                       labelText: 'البريد الإلكتروني',
-                      prefixIcon: const Icon(Icons.email),
+                      prefixIcon: Icon(Icons.email),
                       border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
                     ),
                     validator: (value) {
@@ -436,28 +418,6 @@ class _RegisterSheetState extends State<RegisterSheet> {
                     },
                   ),
                   const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Row(
-                      children: [
-                        const Text('نوع الحساب:'),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: SegmentedButton<String>(
-                            segments: const [
-                              ButtonSegment(value: 'patient', label: Text('مريض'), icon: Icon(Icons.person, size: 18)),
-                              ButtonSegment(value: 'doctor', label: Text('طبيب'), icon: Icon(Icons.medical_services, size: 18)),
-                              ButtonSegment(value: 'pharmacy', label: Text('صيدلية'), icon: Icon(Icons.local_pharmacy, size: 18)),
-                            ],
-                            selected: {_userType},
-                            onSelectionChanged: (Set<String> selection) {
-                              setState(() => _userType = selection.first);
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
                 ],
               ),
             ),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:get_it/get_it.dart';
 import '../../../services/api/storage_service.dart';
 import '../../../widgets/icons/platform_icon.dart';
 import '../../../widgets/icons/doctor_icon.dart';
@@ -9,6 +8,9 @@ import '../../../widgets/icons/profile_icon.dart';
 import '../../../widgets/icons/ai_icon.dart';
 import '../../../widgets/icons/history_icon.dart';
 import '../auth/login_screen.dart';
+
+// Temporary service getter
+StorageService get _storage => StorageService();
 
 class MainScreen extends StatelessWidget {
   const MainScreen({super.key});
@@ -34,7 +36,7 @@ class MainScreen extends StatelessWidget {
     }
   }
 
-  void _logout(BuildContext context) async {
+  Future<void> _logout(BuildContext context) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -47,8 +49,7 @@ class MainScreen extends StatelessWidget {
       ),
     );
     if (confirmed == true) {
-      final storage = sl<StorageService>();
-      await storage.clear();
+      await _storage.clear();
       if (context.mounted) {
         Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
       }

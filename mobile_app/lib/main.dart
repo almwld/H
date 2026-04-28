@@ -12,7 +12,6 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final prefs = await SharedPreferences.getInstance();
   sl.registerLazySingleton(() => prefs);
-  sl.registerLazySingleton(() => StorageService());
   runApp(const SehtakApp());
 }
 
@@ -39,7 +38,7 @@ class AuthWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final storage = sl<StorageService>();
+    final storage = StorageService();
     if (storage.isLoggedIn()) {
       return const MainScreen();
     } else {
